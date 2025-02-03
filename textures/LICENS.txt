@@ -1,0 +1,11 @@
+#========================================================================================================================
+The HDRI spherical map used in this project is created by Kirriaa and is available on DeviantArt: 
+Free star sky HDRI spherical map(https://www.deviantart.com/kirriaa/art/Free-star-sky-HDRI-spherical-map-719281328).
+Original image by ESA/Hubble.
+All rights to the artwork belong to Kirriaa.
+All rights to the imagen belong to ESA/Hubble (https://esahubble.org/).
+#========================================================================================================================
+
+#========================================================================================================================
+Second imagen(floor) taken from www.textures4photoshop.com.
+#========================================================================================================================
