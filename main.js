@@ -4,6 +4,8 @@ import { ParametricGeometry } from 'three/examples/jsm/geometries/ParametricGeom
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import GUI from 'lil-gui';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 
 // textures/free_star_sky_hdri_spherical_map_by_kirriaa_dbw8p0w.jpg
@@ -128,12 +130,87 @@ sceneGroup.rotation.x = -(Math.PI / 2);
 sceneGroup.add(light1);
 sceneGroup.add(light2);
 
+// GUI
+
+const gui = new GUI();
+
+
+const guiParameters = {
+    useBasicMaterial: false,
+    disableLights: false,
+    disablePostProcessing: false,
+    disableSkybox: false,
+    bloomRadius: 0.2,
+    bloomIntensity: 1.5,
+};
+
+const stats = new Stats();
+document.body.appendChild(stats.dom);
+
+let lastTime = performance.now();
+const updateFPS = () => {
+    stats.update();
+    const now = performance.now();
+    const delta = now - lastTime;
+    lastTime = now;
+    guiParameters.fps = Math.round(1000 / delta);
+    requestAnimationFrame(updateFPS);
+};
+updateFPS();
+
+gui.add(guiParameters, 'useBasicMaterial').name('Basic Material').onChange((value) => {
+    const newMaterial = value ? new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true }) : material;
+    kleinMesh.material = newMaterial;
+    spheres.forEach(({ sphere }) => {
+        sphere.material = value ? new THREE.MeshBasicMaterial({ color: sphere.material.color }) : sphereMaterial;
+    });
+});
+
+gui.add(guiParameters, 'disableLights').name('Disable Lights').onChange((value) => {
+    light1.visible = !value;
+    light2.visible = !value;
+    ambientLight.visible = !value;
+    spheres.forEach(({ sphere }) => {
+        sphere.children.forEach(child => {
+            if (child.isLight) child.visible = !value;
+        });
+    });
+});
+
+gui.add(guiParameters, 'disablePostProcessing').name('Disable Post-processing').onChange((value) => {
+    if (value) {
+        animate = function () {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        };
+    } else {
+        animate = function () {
+            requestAnimationFrame(animate);
+            composer.render();
+        };
+    }
+    animate();
+});
+
+gui.add(guiParameters, 'disableSkybox').name('Disable Skybox').onChange((value) => {
+    scene.background = value ? null : textureLoader.load('./textures/free_star_sky_hdri_spherical_map_by_kirriaa_dbw8p0w.jpg', function (texture) {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.background = texture;
+        scene.environment = texture;
+    });
+});
+
+gui.add(guiParameters, 'bloomRadius', 0, 2).name('Bloom Radius').onChange((value) => {
+    bloomPass.radius = value;
+});
+
+gui.add(guiParameters, 'bloomIntensity', 0, 3).name('Bloom Intensity').onChange((value) => {
+    bloomPass.strength = value;
+});
+
+
+
 // animation and rendering
-function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-    composer.render();
-}
 
 let t = 0;
 function animateBalls() {
@@ -154,6 +231,14 @@ function animateBalls() {
 
     requestAnimationFrame(animateBalls);
 }
+
+
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+    composer.render();
+}
+
 
 animateBalls();
 animate();
